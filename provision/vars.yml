@@ -1,0 +1,11 @@
+project_name: jwt_authentication
+application_name: jwt_authentication
+
+db_user: brainattica
+db_name: project_db
+db_password: BrainAttic
+db_name_tests: db_tests
+
+
+application_dir: /home/vagrant/go/src/api.jwt.authentication/
+go_path: /home/vagrant/go

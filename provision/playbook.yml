@@ -1,0 +1,15 @@
+- name: Create a {{ application_name }} virtual machine via vagrant
+  hosts: all
+  sudo: yes
+  sudo_user: root
+  remote_user: vagrant
+  vars:
+    - update_apt_cache: yes
+  vars_files:
+    - vars.yml
+
+  roles:
+    - base
+    - postgresql
+    - golang
+    - redis
