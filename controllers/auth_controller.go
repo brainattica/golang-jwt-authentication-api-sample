@@ -22,9 +22,8 @@ func Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func RefresfhToken(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-	token := services.RefreshToken()
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(token)
+	w.Write(services.RefreshToken())
 }
 
 func Logout(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
