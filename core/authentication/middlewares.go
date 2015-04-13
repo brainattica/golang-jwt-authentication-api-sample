@@ -12,7 +12,7 @@ func RequireTokenAuthentication(rw http.ResponseWriter, req *http.Request, next 
 		return authBackend.PublicKey, nil
 	})
 
-	if err == nil && token.Valid {
+	if err == nil && token.Valid && !authBackend.IsInBlacklist(req.Header.Get("Authorization")) {
 		next(rw, req)
 	} else {
 		rw.WriteHeader(http.StatusUnauthorized)

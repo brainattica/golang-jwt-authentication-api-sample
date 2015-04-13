@@ -1,17 +1,24 @@
 package authentication
 
 import (
+	"api.jwt.auth/core/redis"
 	"api.jwt.auth/services/models"
 	jwt "github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
 	"io/ioutil"
 	"path/filepath"
+	"time"
 )
 
 type JWTAuthenticationBackend struct {
 	privateKey []byte
 	PublicKey  []byte
 }
+
+const (
+	tokenDuration = 72
+	expireOffset  = 3600
+)
 
 func InitJWTAuthenticationBackend() *JWTAuthenticationBackend {
 	authBack := new(JWTAuthenticationBackend)
@@ -25,6 +32,7 @@ func InitJWTAuthenticationBackend() *JWTAuthenticationBackend {
 
 func (backend *JWTAuthenticationBackend) GenerateToken() string {
 	token := jwt.New(jwt.GetSigningMethod("RS256"))
+	token.Claims["exp"] = time.Now().Add(time.Hour * time.Duration(tokenDuration)).Unix()
 	tokenString, _ := token.SignedString(backend.privateKey)
 	return tokenString
 }
@@ -40,6 +48,29 @@ func (backend *JWTAuthenticationBackend) Authenticate(user *models.User) bool {
 	return user.Username == testUser.Username && bcrypt.CompareHashAndPassword([]byte(testUser.Password), []byte(user.Password)) == nil
 }
 
-func (backend *JWTAuthenticationBackend) Logout(token string) error {
-	return nil
+func (backend *JWTAuthenticationBackend) getTokenRemainingValidity(timestamp interface{}) int {
+	if validity, ok := timestamp.(float64); ok {
+		tm := time.Unix(int64(validity), 0)
+		remainer := tm.Sub(time.Now())
+		if remainer > 0 {
+			return int(remainer.Seconds() + expireOffset)
+		}
+	}
+	return expireOffset
+}
+
+func (backend *JWTAuthenticationBackend) Logout(tokenString string, token *jwt.Token) error {
+	redisConn := redis.Connect()
+	return redisConn.SetValue(tokenString, tokenString, backend.getTokenRemainingValidity(token.Claims["exp"]))
+}
+
+func (backend *JWTAuthenticationBackend) IsInBlacklist(token string) bool {
+	redisConn := redis.Connect()
+	redisToken, _ := redisConn.GetValue(token)
+
+	if redisToken == nil {
+		return false
+	}
+
+	return true
 }
