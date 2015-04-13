@@ -20,10 +20,16 @@ func Login(requestUser *models.User) (int, []byte) {
 	return http.StatusUnauthorized, []byte("")
 }
 
-/*func RefreshToken() {
-
+func RefreshToken() []byte {
+	authBackend := authentication.InitJWTAuthenticationBackend()
+	token := parameters.TokenAuthentication{authBackend.GenerateToken()}
+	response, err := json.Marshal(token)
+	if err != nil {
+		panic(err)
+	}
+	return response
 }
 
-func Logout() {
+/*func Logout() {
 
 }*/

@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"api.jwt.auth/api/parameters"
 	"api.jwt.auth/core/authentication"
 	"api.jwt.auth/services"
 	"api.jwt.auth/services/models"
@@ -23,11 +22,9 @@ func Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func RefresfhToken(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-	authBackend := authentication.InitJWTAuthenticationBackend()
-	token := parameters.TokenAuthentication{authBackend.GenerateToken()}
-	response, _ := json.Marshal(token)
+	token := services.RefreshToken()
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(response)
+	w.Write(token)
 }
 
 func Logout(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
