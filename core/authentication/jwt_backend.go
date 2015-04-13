@@ -33,6 +33,7 @@ func InitJWTAuthenticationBackend() *JWTAuthenticationBackend {
 func (backend *JWTAuthenticationBackend) GenerateToken() string {
 	token := jwt.New(jwt.GetSigningMethod("RS256"))
 	token.Claims["exp"] = time.Now().Add(time.Hour * time.Duration(tokenDuration)).Unix()
+	token.Claims["iat"] = time.Now().Unix()
 	tokenString, _ := token.SignedString(backend.privateKey)
 	return tokenString
 }
