@@ -3,6 +3,7 @@ package authentication
 import (
 	"api.jwt.auth/core/redis"
 	"api.jwt.auth/services/models"
+	"code.google.com/p/go-uuid/uuid"
 	jwt "github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
 	"io/ioutil"
@@ -30,10 +31,11 @@ func InitJWTAuthenticationBackend() *JWTAuthenticationBackend {
 	return authBack
 }
 
-func (backend *JWTAuthenticationBackend) GenerateToken() string {
+func (backend *JWTAuthenticationBackend) GenerateToken(user *models.User) string {
 	token := jwt.New(jwt.GetSigningMethod("RS256"))
 	token.Claims["exp"] = time.Now().Add(time.Hour * time.Duration(tokenDuration)).Unix()
 	token.Claims["iat"] = time.Now().Unix()
+	token.Claims["sub"] = user.UUID
 	tokenString, _ := token.SignedString(backend.privateKey)
 	return tokenString
 }
@@ -42,6 +44,7 @@ func (backend *JWTAuthenticationBackend) Authenticate(user *models.User) bool {
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("testing"), 10)
 
 	testUser := models.User{
+		UUID:     uuid.New(),
 		Username: "haku",
 		Password: string(hashedPassword),
 	}

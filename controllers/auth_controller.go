@@ -19,8 +19,12 @@ func Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func RefresfhToken(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+	requestUser := new(models.User)
+	decoder := json.NewDecoder(r.Body)
+	decoder.Decode(&requestUser)
+
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(services.RefreshToken())
+	w.Write(services.RefreshToken(requestUser))
 }
 
 func Logout(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
