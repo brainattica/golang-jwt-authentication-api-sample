@@ -3,6 +3,7 @@ package controllers
 import (
 	"api.jwt.auth/api/parameters"
 	"api.jwt.auth/core/authentication"
+	"api.jwt.auth/services"
 	"api.jwt.auth/services/models"
 	"encoding/json"
 	"fmt"
@@ -11,24 +12,14 @@ import (
 )
 
 func Login(w http.ResponseWriter, r *http.Request) {
-	request_user := new(models.User)
+	requestUser := new(models.User)
 	decoder := json.NewDecoder(r.Body)
-	decoder.Decode(&request_user)
+	decoder.Decode(&requestUser)
 
-	authBackend := authentication.InitJWTAuthenticationBackend()
-
-	if authBackend.Authenticate(request_user) {
-		token := parameters.TokenAuthentication{authBackend.GenerateToken()}
-		response, _ := json.Marshal(token)
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		w.Write(response)
-
-	} else {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte("Unauthorized"))
-	}
+	responseStatus, token := services.Login(requestUser)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(responseStatus)
+	w.Write(token)
 }
 
 func RefresfhToken(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
