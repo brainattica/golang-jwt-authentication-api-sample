@@ -58,11 +58,11 @@ func (suite *AuthenticationBackendTestSuite) TestAuthenticate(c *C) {
 
 func (suite *AuthenticationBackendTestSuite) TestAuthenticateIncorrectPass(c *C) {
 	authBackend := authentication.InitJWTAuthenticationBackend()
-	user := &models.User{
+	user := models.User{
 		Username: "haku",
 		Password: "Password",
 	}
-	c.Assert(authBackend.Authenticate(user), Equals, false)
+	c.Assert(authBackend.Authenticate(&user), Equals, false)
 }
 
 func (suite *AuthenticationBackendTestSuite) TestAuthenticateIncorrectUsername(c *C) {
