@@ -3,11 +3,11 @@ package authentication
 import (
 	"api.jwt.auth/core/redis"
 	"api.jwt.auth/services/models"
+	"api.jwt.auth/settings"
 	"code.google.com/p/go-uuid/uuid"
 	jwt "github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
 	"io/ioutil"
-	"path/filepath"
 	"time"
 )
 
@@ -83,8 +83,7 @@ func (backend *JWTAuthenticationBackend) IsInBlacklist(token string) bool {
 }
 
 func getPrivateKey() []byte {
-	privateKeyPath, _ := filepath.Abs("./core/authentication/keys/private_key")
-	privateKey, err := ioutil.ReadFile(privateKeyPath)
+	privateKey, err := ioutil.ReadFile(settings.Get().PrivateKeyPath)
 	if err != nil {
 		panic(err)
 	}
@@ -93,8 +92,7 @@ func getPrivateKey() []byte {
 }
 
 func getPublicKey() []byte {
-	publicKeyPath, _ := filepath.Abs("./core/authentication/keys/public_key.pub")
-	publicKey, err := ioutil.ReadFile(publicKeyPath)
+	publicKey, err := ioutil.ReadFile(settings.Get().PublicKeyPath)
 	if err != nil {
 		panic(err)
 	}
