@@ -21,14 +21,17 @@ const (
 	expireOffset  = 3600
 )
 
-func InitJWTAuthenticationBackend() *JWTAuthenticationBackend {
-	authBack := new(JWTAuthenticationBackend)
-	privateKeyPath, _ := filepath.Abs("./core/authentication/keys/private_key")
-	publicKeyPath, _ := filepath.Abs("./core/authentication/keys/public_key.pub")
-	authBack.privateKey, _ = ioutil.ReadFile(privateKeyPath)
-	authBack.PublicKey, _ = ioutil.ReadFile(publicKeyPath)
+var authBackendInstance *JWTAuthenticationBackend = nil
 
-	return authBack
+func InitJWTAuthenticationBackend() *JWTAuthenticationBackend {
+	if authBackendInstance == nil {
+		authBackendInstance = &JWTAuthenticationBackend{
+			privateKey: getPrivateKey(),
+			PublicKey:  getPublicKey(),
+		}
+	}
+
+	return authBackendInstance
 }
 
 func (backend *JWTAuthenticationBackend) GenerateToken(user *models.User) string {
@@ -77,4 +80,24 @@ func (backend *JWTAuthenticationBackend) IsInBlacklist(token string) bool {
 	}
 
 	return true
+}
+
+func getPrivateKey() []byte {
+	privateKeyPath, _ := filepath.Abs("./core/authentication/keys/private_key")
+	privateKey, err := ioutil.ReadFile(privateKeyPath)
+	if err != nil {
+		panic(err)
+	}
+
+	return privateKey
+}
+
+func getPublicKey() []byte {
+	publicKeyPath, _ := filepath.Abs("./core/authentication/keys/public_key.pub")
+	publicKey, err := ioutil.ReadFile(publicKeyPath)
+	if err != nil {
+		panic(err)
+	}
+
+	return publicKey
 }
