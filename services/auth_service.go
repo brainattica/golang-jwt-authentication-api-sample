@@ -13,9 +13,13 @@ func Login(requestUser *models.User) (int, []byte) {
 	authBackend := authentication.InitJWTAuthenticationBackend()
 
 	if authBackend.Authenticate(requestUser) {
-		token := parameters.TokenAuthentication{authBackend.GenerateToken(requestUser)}
-		response, _ := json.Marshal(token)
-		return http.StatusOK, response
+		token, err := authBackend.GenerateToken(requestUser.UUID)
+		if err != nil {
+			return http.StatusInternalServerError, []byte("")
+		} else {
+			response, _ := json.Marshal(parameters.TokenAuthentication{token})
+			return http.StatusOK, response
+		}
 	}
 
 	return http.StatusUnauthorized, []byte("")
@@ -23,8 +27,11 @@ func Login(requestUser *models.User) (int, []byte) {
 
 func RefreshToken(requestUser *models.User) []byte {
 	authBackend := authentication.InitJWTAuthenticationBackend()
-	token := parameters.TokenAuthentication{authBackend.GenerateToken(requestUser)}
-	response, err := json.Marshal(token)
+	token, err := authBackend.GenerateToken(requestUser.UUID)
+	if err != nil {
+		panic(err)
+	}
+	response, err := json.Marshal(parameters.TokenAuthentication{token})
 	if err != nil {
 		panic(err)
 	}

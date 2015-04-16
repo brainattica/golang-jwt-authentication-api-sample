@@ -34,13 +34,17 @@ func InitJWTAuthenticationBackend() *JWTAuthenticationBackend {
 	return authBackendInstance
 }
 
-func (backend *JWTAuthenticationBackend) GenerateToken(user *models.User) string {
+func (backend *JWTAuthenticationBackend) GenerateToken(userUUID string) (string, error) {
 	token := jwt.New(jwt.GetSigningMethod("RS256"))
-	token.Claims["exp"] = time.Now().Add(time.Hour * time.Duration(tokenDuration)).Unix()
+	token.Claims["exp"] = time.Now().Add(time.Hour * time.Duration(settings.Get().JWTExpirationDelta)).Unix()
 	token.Claims["iat"] = time.Now().Unix()
-	token.Claims["sub"] = user.UUID
-	tokenString, _ := token.SignedString(backend.privateKey)
-	return tokenString
+	token.Claims["sub"] = userUUID
+	tokenString, err := token.SignedString(backend.privateKey)
+	if err != nil {
+		panic(err)
+		return "", err
+	}
+	return tokenString, nil
 }
 
 func (backend *JWTAuthenticationBackend) Authenticate(user *models.User) bool {
