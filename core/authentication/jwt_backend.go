@@ -4,16 +4,20 @@ import (
 	"api.jwt.auth/core/redis"
 	"api.jwt.auth/services/models"
 	"api.jwt.auth/settings"
+	"bufio"
 	"code.google.com/p/go-uuid/uuid"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/pem"
 	jwt "github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
-	"io/ioutil"
+	"os"
 	"time"
 )
 
 type JWTAuthenticationBackend struct {
-	privateKey []byte
-	PublicKey  []byte
+	privateKey *rsa.PrivateKey
+	PublicKey  *rsa.PublicKey
 }
 
 const (
@@ -86,20 +90,60 @@ func (backend *JWTAuthenticationBackend) IsInBlacklist(token string) bool {
 	return true
 }
 
-func getPrivateKey() []byte {
-	privateKey, err := ioutil.ReadFile(settings.Get().PrivateKeyPath)
+func getPrivateKey() *rsa.PrivateKey {
+	privateKeyFile, err := os.Open(settings.Get().PrivateKeyPath)
 	if err != nil {
 		panic(err)
 	}
 
-	return privateKey
+	pemfileinfo, _ := privateKeyFile.Stat()
+	var size int64 = pemfileinfo.Size()
+	pembytes := make([]byte, size)
+
+	buffer := bufio.NewReader(privateKeyFile)
+	_, err = buffer.Read(pembytes)
+
+	data, _ := pem.Decode([]byte(pembytes))
+
+	privateKeyFile.Close()
+
+	privateKeyImported, err := x509.ParsePKCS1PrivateKey(data.Bytes)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return privateKeyImported
 }
 
-func getPublicKey() []byte {
-	publicKey, err := ioutil.ReadFile(settings.Get().PublicKeyPath)
+func getPublicKey() *rsa.PublicKey {
+	publicKeyFile, err := os.Open(settings.Get().PublicKeyPath)
 	if err != nil {
 		panic(err)
 	}
 
-	return publicKey
+	pemfileinfo, _ := publicKeyFile.Stat()
+	var size int64 = pemfileinfo.Size()
+	pembytes := make([]byte, size)
+
+	buffer := bufio.NewReader(publicKeyFile)
+	_, err = buffer.Read(pembytes)
+
+	data, _ := pem.Decode([]byte(pembytes))
+
+	publicKeyFile.Close()
+
+	publicKeyImported, err := x509.ParsePKIXPublicKey(data.Bytes)
+
+	if err != nil {
+		panic(err)
+	}
+
+	rsaPub, ok := publicKeyImported.(*rsa.PublicKey)
+
+	if !ok {
+		panic(err)
+	}
+
+	return rsaPub
 }
