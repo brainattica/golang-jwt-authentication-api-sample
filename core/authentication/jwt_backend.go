@@ -5,7 +5,7 @@ import (
 	"api.jwt.auth/services/models"
 	"api.jwt.auth/settings"
 	"bufio"
-	"code.google.com/p/go-uuid/uuid"
+	"github.com/pborman/uuid"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
